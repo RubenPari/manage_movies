@@ -3,6 +3,26 @@ require 'net/http'
 class MoviesController < ApplicationController
   protect_from_forgery with: :null_session
 
+  def get_all
+    movies = Movie.all
+
+    render json: movies, status: 200
+  end
+
+  def get_by_id
+    if !params[:id] || params[:id] == ''
+      render json: { "status" => "error", "message" => "No id provided" }, status: 400
+    else
+      movie = Movie.find_by(id: params[:id])
+
+      if movie
+        render json: movie, status: 200
+      else
+        render json: { "status" => "error", "message" => "movie not found" }, status: 404
+      end
+    end
+  end
+
   def exists
     if !params[:q] || params[:q] == ''
       render json: { "status" => "error", "message" => "No query provided" }, status: 400
