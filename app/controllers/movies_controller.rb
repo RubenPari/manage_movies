@@ -57,4 +57,20 @@ class MoviesController < ApplicationController
       end
     end
   end
+
+  def delete
+    if !params[:id] || params[:id] == ''
+      render json: { "status" => "error", "message" => "No id provided" }, status: 400
+    else
+      movie = Movie.find_by(id: params[:id])
+
+      if movie
+        movie.destroy
+
+        render json: { "status" => "ok", "result" => "movie deleted successfully" }, status: 200
+      else
+        render json: { "status" => "error", "message" => "movie not found" }, status: 404
+      end
+    end
+  end
 end
