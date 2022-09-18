@@ -1,22 +1,22 @@
-class TvSeriesController < ApplicationController
+class EpisodesController < ApplicationController
   protect_from_forgery with: :null_session
 
   def get_all
-    tv_series = TvSerie.all
+    episodes = Episode.all
 
-    render json: tv_series, status: 200
+    render json: episodes, status: 200
   end
 
   def get_by_id
     if !params[:id] || params[:id] == ''
       render json: { "status" => "error", "message" => "No id provided" }, status: 400
     else
-      tv_serie = TvSerie.find_by(id: params[:id])
+      episode = Episode.find_by(id: params[:id])
 
-      if tv_serie
-        render json: tv_serie, status: 200
+      if episode
+        render json: episode, status: 200
       else
-        render json: { "status" => "error", "message" => "tv serie not found" }, status: 404
+        render json: { "status" => "error", "message" => "episode not found" }, status: 404
       end
     end
   end
@@ -28,7 +28,7 @@ class TvSeriesController < ApplicationController
       # remove spaces from query
       query = params[:q].gsub(' ', '')
 
-      endpoint = ENV['BASE_URL'] + "/SearchSeries/" + ENV['API_KEY'] + "/" + query
+      endpoint = ENV['BASE_URL'] + "/Search/" + ENV['API_KEY'] + "/" + query
 
       response = Net::HTTP.get_response(URI(endpoint))
 
@@ -59,25 +59,24 @@ class TvSeriesController < ApplicationController
         # convert the response to a object
         response_body = JSON.parse(response.body)
 
-        # check if the tv serie already exists
-        tv_serie = TvSerie.find_by(id: params[:id])
+        # check if the episode already exists
+        episode = Episode.find_by(id: params[:id])
 
-        if tv_serie
-          render json: { "status" => "error", "message" => "tv serie already exists" }, status: 409
+        if episode
+          render json: { "status" => "error", "message" => "episode already exists" }, status: 409
         else
-          # create the tv serie
-          tv_serie = TvSerie.new do |t|
-            t.id = response_body["id"]
-            t.title = response_body["title"]
-            t.genre = response_body["genre"]
-            t.description = response_body["plot"]
-            t.image = response_body["image"]
+          # create the episode
+          episode = Episode.new do |e|
+            e.id = params[:id]
+            e.title = response_type["title"]
+            e.season = response_type["season"]
+            e.description = response_type["description"]
           end
 
-          if tv_serie.save
-            render json: { "status" => "ok", "message" => "tv serie created" }, status: 201
+          if episode.save
+            render json: episode, status: 201
           else
-            render json: { "status" => "error", "message" => "tv serie not created" }, status: 500
+            render json: { "status" => "error", "message" => "episode could not be created" }, status: 500
           end
         end
       end
@@ -88,14 +87,14 @@ class TvSeriesController < ApplicationController
     if !params[:id] || params[:id] == ''
       render json: { "status" => "error", "message" => "No id provided" }, status: 400
     else
-      tv_serie = TvSerie.find_by(id: params[:id])
+      episode = Episode.find_by(id: params[:id])
 
-      if tv_serie
-        tv_serie.destroy
+      if episode
+        episode.destroy
 
-        render json: { "status" => "ok", "message" => "tv serie deleted" }, status: 200
+        render json: { "status" => "ok", "message" => "episode deleted" }, status: 200
       else
-        render json: { "status" => "error", "message" => "tv serie not found" }, status: 404
+        render json: { "status" => "error", "message" => "episode not found" }, status: 404
       end
     end
   end
